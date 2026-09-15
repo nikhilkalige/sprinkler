@@ -224,3 +224,75 @@ canvas.dragging {
 canvas.panning {
   cursor: grabbing;
 }
+
+.menu-toggle {
+  display: none;
+}
+
+.panel-backdrop {
+  display: none;
+}
+
+/* Mobile: the control panel becomes a slide-in drawer over a full-screen canvas,
+   opened with a hamburger button, instead of a fixed 300px sidebar that would
+   crowd out the canvas on a narrow screen. */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 8px;
+    background: var(--panel-bg);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    z-index: 1100;
+  }
+
+  .panel-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 999;
+  }
+
+  .panel-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 85%;
+    max-width: 320px;
+    height: 100%;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.2);
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    z-index: 1000;
+  }
+
+  .panel.open {
+    transform: translateX(0);
+  }
+
+  .panel h1 {
+    margin-top: 44px;
+  }
+
+  .stage {
+    width: 100%;
+  }
+}

@@ -472,14 +472,22 @@
 
   // --- Drag handling ---
 
-  function getMousePos(evt) {
+  function getPosFromClient(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     return {
-      x: (evt.clientX - rect.left) * scaleX,
-      y: (evt.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
+  }
+
+  function getMousePos(evt) {
+    return getPosFromClient(evt.clientX, evt.clientY);
+  }
+
+  function touchDist(t1, t2) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
   }
 
   function findSprinklerAt(screenPos) {
@@ -539,7 +547,97 @@
     zoomBy(factor, pos.x, pos.y);
   }, { passive: false });
 
+  // --- Touch handling (drag a sprinkler / one-finger pan / two-finger pinch-zoom) ---
+
+  let pinch = null; // { startDist, startZoom, mid }
+
+  canvas.addEventListener('touchstart', (evt) => {
+    evt.preventDefault();
+    if (evt.touches.length === 2) {
+      dragIndex = -1;
+      isPanning = false;
+      canvas.classList.remove('dragging', 'panning');
+      const [t1, t2] = evt.touches;
+      pinch = {
+        startDist: touchDist(t1, t2),
+        startZoom: zoom,
+        mid: getPosFromClient((t1.clientX + t2.clientX) / 2, (t1.clientY + t2.clientY) / 2),
+      };
+      return;
+    }
+    if (evt.touches.length === 1) {
+      const pos = getPosFromClient(evt.touches[0].clientX, evt.touches[0].clientY);
+      const idx = findSprinklerAt(pos);
+      if (idx >= 0) {
+        dragIndex = idx;
+        canvas.classList.add('dragging');
+        render();
+      } else {
+        isPanning = true;
+        panLast = pos;
+        canvas.classList.add('panning');
+      }
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (evt) => {
+    evt.preventDefault();
+    if (pinch && evt.touches.length === 2) {
+      const [t1, t2] = evt.touches;
+      const dist = touchDist(t1, t2);
+      const targetZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinch.startZoom * (dist / pinch.startDist)));
+      const factor = targetZoom / zoom;
+      if (factor !== 1) zoomBy(factor, pinch.mid.x, pinch.mid.y);
+      return;
+    }
+    if (evt.touches.length === 1) {
+      const pos = getPosFromClient(evt.touches[0].clientX, evt.touches[0].clientY);
+      if (dragIndex >= 0) {
+        const world = toWorld(pos.x, pos.y);
+        world.x = Math.max(transform.minX, Math.min(transform.maxX, world.x));
+        world.y = Math.max(transform.minY, Math.min(transform.maxY, world.y));
+        sprinklers[dragIndex] = world;
+        render();
+      } else if (isPanning) {
+        panBy(pos.x - panLast.x, pos.y - panLast.y);
+        panLast = pos;
+      }
+    }
+  }, { passive: false });
+
+  function endTouchInteraction(evt) {
+    if (evt.touches.length < 2) pinch = null;
+    if (evt.touches.length === 0) {
+      if (dragIndex >= 0) {
+        dragIndex = -1;
+        canvas.classList.remove('dragging');
+        render();
+      }
+      if (isPanning) {
+        isPanning = false;
+        canvas.classList.remove('panning');
+      }
+    }
+  }
+
+  canvas.addEventListener('touchend', endTouchInteraction);
+  canvas.addEventListener('touchcancel', endTouchInteraction);
+
   // --- Wiring ---
+
+  // Mobile: the control panel is a slide-in drawer opened via the hamburger button.
+  const panel = document.getElementById('panel');
+  const menuToggle = document.getElementById('menuToggle');
+  const panelBackdrop = document.getElementById('panelBackdrop');
+
+  function setPanelOpen(open) {
+    panel.classList.toggle('open', open);
+    panelBackdrop.classList.toggle('open', open);
+    menuToggle.setAttribute('aria-expanded', String(open));
+  }
+
+  menuToggle.addEventListener('click', () => setPanelOpen(!panel.classList.contains('open')));
+  panelBackdrop.addEventListener('click', () => setPanelOpen(false));
 
   document.getElementById('regenerateBtn').addEventListener('click', regenerate);
   document.getElementById('resetPositionsBtn').addEventListener('click', resetPositions);
