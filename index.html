@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprinkler Spray Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <h1>Sprinkler Simulator</h1>
+
+      <section class="group">
+        <h2>Tree Grid</h2>
+        <div class="rc-row">
+          <label class="rc-field">Rows <input type="number" id="treeRows" min="1" max="20" value="20"></label>
+          <button type="button" class="link-toggle active" id="treeLinkRC" aria-pressed="true" title="Keep rows and columns equal">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 12h8M8 12l3-3M8 12l3 3M16 12l-3-3M16 12l-3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <label class="rc-field">Columns <input type="number" id="treeCols" min="1" max="20" value="20"></label>
+        </div>
+        <label>Spacing (ft) <input type="number" id="treeSpacing" min="3" max="100" step="1" value="9"></label>
+        <label>Girth / canopy circumference (ft) <input type="number" id="treeGirth" min="3" max="190" step="0.01" value="4.71"></label>
+      </section>
+
+      <section class="group">
+        <h2>Sprinkler Grid</h2>
+        <div class="rc-row">
+          <label class="rc-field">Rows <input type="number" id="sprRows" min="1" max="20" value="3"></label>
+          <button type="button" class="link-toggle active" id="sprLinkRC" aria-pressed="true" title="Keep rows and columns equal">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 12h8M8 12l3-3M8 12l3 3M16 12l-3-3M16 12l-3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <label class="rc-field">Columns <input type="number" id="sprCols" min="1" max="20" value="3"></label>
+        </div>
+        <label>Spacing (ft) <input type="number" id="sprSpacing" min="3" max="120" step="1" value="45"></label>
+        <label>Spray radius (ft) <input type="number" id="sprRadius" min="1" max="80" step="1" value="20"></label>
+        <div class="rc-row">
+          <label class="rc-field">Offset X (ft) <input type="number" id="sprOffsetX" min="-60" max="60" step="any" value="0"></label>
+          <label class="rc-field">Offset Y (ft) <input type="number" id="sprOffsetY" min="-60" max="60" step="any" value="0"></label>
+        </div>
+        <button type="button" id="centerBetweenTreesBtn" class="block-btn">Center Between Trees</button>
+      </section>
+
+      <section class="group actions">
+        <button id="regenerateBtn">Regenerate Grids</button>
+        <button id="resetPositionsBtn">Reset Sprinkler Positions</button>
+      </section>
+
+      <section class="group">
+        <h2>View</h2>
+        <div class="canvas-toolbar">
+          <button type="button" id="zoomOutBtn" title="Zoom out" aria-label="Zoom out">&minus;</button>
+          <span id="zoomLabel">100%</span>
+          <button type="button" id="zoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>
+          <button type="button" id="fitBtn" title="Fit to view">Fit</button>
+        </div>
+        <button type="button" id="sprayLinesToggle" class="block-btn toggle-btn" aria-pressed="false">
+          Tree Blocking: Off
+        </button>
+        <p class="hint">When on, each sprinkler's wetted area is shaded with bites taken out where a tree canopy blocks its line of sight. Coverage stats account for the blocking too.</p>
+      </section>
+
+      <section class="group stats">
+        <h2>Coverage Analysis</h2>
+        <div class="stat"><span>Field area watered</span><strong id="statArea">0%</strong></div>
+        <div class="stat"><span>Trees watered</span><strong id="statTrees">0 / 0</strong></div>
+        <div class="stat"><span>Overwatered overlap</span><strong id="statOverlap">0%</strong></div>
+      </section>
+
+      <p class="hint">Drag sprinklers (blue) around the canvas to see how the spray pattern and coverage change.</p>
+    </aside>
+
+    <main class="stage">
+      <canvas id="canvas"></canvas>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
